@@ -1,6 +1,8 @@
 import 'package:flutter_floating_bottom_bar/src/bottom_bar_scroll_controller_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'dart:async';
 
 /// [width] & [height] can be used to animate the size of the back to top icon.
 /// You can also not use them to keep your icon a constant size.
@@ -168,9 +170,19 @@ class _BottomBarState extends State<BottomBar> with SingleTickerProviderStateMix
   late Animation<Offset> _offsetAnimation;
   late bool isScrollingDown;
   late bool isOnTop;
+  var keyboardVisibilityController = KeyboardVisibilityController();
+  StreamSubscription<bool>? keyboardSubscription;
 
   @override
   void initState() {
+    keyboardSubscription = keyboardVisibilityController.onChange.listen((bool visible) {
+      if(visible){
+        hideBottomBar();
+      }
+      else{
+        showBottomBar();
+      }
+    });
     isScrollingDown = widget.reverse;
     isOnTop = !widget.reverse;
     myScroll();
@@ -251,6 +263,7 @@ class _BottomBarState extends State<BottomBar> with SingleTickerProviderStateMix
   @override
   void dispose() {
     scrollBottomBarController.removeListener(() {});
+    keyboardSubscription?.cancel();
     _controller.dispose();
     super.dispose();
   }
